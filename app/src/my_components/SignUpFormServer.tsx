@@ -1,9 +1,8 @@
-import axios, { HttpStatusCode } from "axios";
-import * as z from "zod";
-import Link from "next/link";
-import { AppleIcon, FacebookIcon, GoogleIcon, GithubIcon } from "./Icons";
-import { Input } from "@/components/ui/input";
+"use client";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
@@ -12,117 +11,90 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { redirect } from "next/navigation";
-import { SubmitButton } from "@/my_components/ClientButtons";
-import { Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { SignUpType, signUpSchema } from "@/lib/Schemas";
+import { useFormStatus } from "react-dom";
+import { signUpAction } from "@/lib/actions";
+import FieldInput from "./FieldInput";
+import { useEffect } from "react";
 
-type Props = {};
-const fields = ["Username", "Email", "Password"];
-const Icons = [
-  {
-    id: 1,
-    name: "apple",
-    Icon: AppleIcon,
-  },
-  {
-    id: 2,
-    name: "google",
-    Icon: GoogleIcon,
-  },
-  {
-    id: 3,
-    name: "facebook",
-    Icon: FacebookIcon,
-  },
-  {
-    id: 4,
-    name: "github",
-    Icon: GithubIcon,
-  },
-];
+type Props = {
+  fields: {
+    id: number;
+    name: string;
+    fieldTpye: string;
+  }[];
+};
 
-export default function SignUpFormServer() {
-  const formSchema = z.object({
-    username: z
-      .string()
-      .min(1, "Name is required")
-      .max(16, "Max username is characters is 16"),
-    email: z.string().email("Email is not valid"),
-    password: z
-      .string()
-      .min(8, "Minimum password value must be at least 8 characters")
-      .max(16, "Max password value must be at least 16 characters"),
+export default function SignUpForm({ fields }: Props) {
+  const { pending } = useFormStatus();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const tokenError = searchParams.get("tokenError") || "";
+
+  const handleTokenError = (error: string) => {
+    switch (error) {
+      case "expired":
+        toast.error("Activation token has expired. Please request a new one.");
+        break;
+      case "invalid":
+        toast.error(
+          "Invalid activation token. Please check the token and try again."
+        );
+        break;
+      default:
+        toast.error("Error in activation token");
+        break;
+    }
+  };
+
+  useEffect(() => {
+    if (tokenError) {
+      handleTokenError(tokenError);
+    }
+  }, [tokenError]);
+
+  const form = useForm<SignUpType>({
+    resolver: zodResolver(signUpSchema),
+    defaultValues: {
+      username: "Example",
+      email: "mo7malo110@gmail.com",
+      password: "********",
+    },
   });
 
-  async function onSubmit(formDate: FormData) {
-    "use server";
+  async function onSubmit(data: SignUpType) {
+    // To handle client side validation to display error message
+    signUpSchema.parse(data);
     try {
-      // const userData = formSchema.parse({
-      //   username: formDate.get("username"),
-      //   email: formDate.get("email"),
-      //   password: formDate.get("password"),
-      // });
-      throw new Error("Invalid fields");
-      console.log("This form is valid", {
-        username: formDate.get("username"),
-        email: formDate.get("email"),
-        password: formDate.get("password"),
-      });
+      // To handle logic and server side validation
+      const res = await signUpAction(data);
+      toast.success(res);
+      router.push("/sign-in");
     } catch (error: any) {
-      return toast.error(error.message);
+      toast.error("Something went wrong", {
+        description: error.message,
+      });
     }
-
-    // try {
-    //   const checkedValues = formSchema.parse(values);
-    //   const res = await axios.post("/api/register", checkedValues);
-    //   toast.success(res.data?.msg)
-    //   if (res.status === HttpStatusCode.Created) router.push("/sign-in");
-    // } catch (error: any) {
-    //   toast.error(error.response?.data?.msg);
-    // }
   }
 
   return (
-    <div>
-      <form action={onSubmit} className="space-y-8 flex flex-col">
-        {fields.map((formField) => (
-          <input
-            name={formField.toLowerCase()}
-            key={formField}
-            placeholder={formField}
-            className={"border border-red"}
-          />
+    <Form {...form}>
+      <form
+        action={form.handleSubmit(onSubmit) as unknown as string}
+        className="space-y-8"
+      >
+        {fields.map((field) => (
+          <FieldInput {...field} control={form.control} key={field.id} />
         ))}
-        <SubmitButton />
+        <Button
+          type="submit"
+          className={"w-full rounded-xl"}
+          disabled={pending}
+        >
+          Sign Up
+        </Button>
       </form>
-      <div>
-        {/* <!-- className={"py-8 text-center"} --> */}
-        <div className="icons flex justify-center gap-8">
-          {Icons.map(({ id, name, Icon }) => (
-            <div
-              key={id}
-              className={
-                "border hover:border-cyan-500 border-transparent rounded-xl transition p-2 cursor-pointer"
-              }
-            >
-              <Icon />
-            </div>
-          ))}
-        </div>
-
-        <p>
-          {/*className={"py-4"}*/}
-          Already have an account?{" "}
-          <Link
-            href={"/sign-in"}
-            className={
-              "hover:text-blue-500 transition hover:underline underline-offset-2 font-bold"
-            }
-          >
-            Sign In
-          </Link>
-        </p>
-      </div>
-    </div>
+    </Form>
   );
 }

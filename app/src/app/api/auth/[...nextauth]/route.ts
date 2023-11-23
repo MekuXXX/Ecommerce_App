@@ -6,6 +6,7 @@ import FacebookProvider from "next-auth/providers/facebook";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcrypt";
+import { SendTokenMail } from "@/lib/actions";
 
 const handler = NextAuth({
   secret: process.env.NEXTAUTH_SECRET,
@@ -44,6 +45,14 @@ const handler = NextAuth({
         if (!user) {
           throw new Error("User is not found");
         }
+        if (!user.isActive) {
+          await SendTokenMail({
+            id: user.id,
+            username: user.username,
+            email: user.email,
+          });
+          throw new Error("Please activate the account, We sent an email");
+        }
 
         const isPassValid = await bcrypt.compare(
           credentials?.password!,
@@ -57,7 +66,7 @@ const handler = NextAuth({
         return {
           email: user.email,
           name: user.username,
-          
+
           id: user.id,
         };
       },

@@ -78,7 +78,7 @@ export default function SignUpForm() {
       toast.success(res.data?.msg);
       if (res.status === HttpStatusCode.Created) router.push("/sign-in");
     } catch (error: any) {
-      toast.error(error.response?.data?.msg);
+      toast.error(error.message);
     }
     setLoading(false);
   }
