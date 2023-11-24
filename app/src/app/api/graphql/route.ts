@@ -1,17 +1,15 @@
 import { ApolloServer } from "@apollo/server";
 import { startServerAndCreateNextHandler } from "@as-integrations/next";
 
-import typeDefs from "./schema";
-import resolvers from "./resolvers";
-import allowCors from "./allowCors";
+import typeDefs from "../../../graphql/schema";
+import resolvers from "../../../graphql/resolvers";
+import allowCors from "../../../graphql/allowCors";
 
 const apolloServer = new ApolloServer({
   typeDefs,
   resolvers,
 });
 
-const handler = startServerAndCreateNextHandler(apolloServer, {
-  context: async (req, res) => ({ req, res }),
-});
+const handler = startServerAndCreateNextHandler(apolloServer);
 
-export default allowCors(handler as unknown as any);
+export { handler as GET, handler as POST };

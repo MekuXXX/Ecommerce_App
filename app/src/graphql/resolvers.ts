@@ -1,11 +1,29 @@
-const resolvers = {
+import type {} from "./types";
+import { Resolvers } from "./types/graphql";
+const resolvers: Resolvers = {
   Query: {
     users: async () => {
       try {
-        const response = await fetch(process.env.URL_API as string);
-        const data = await response.json();
+        const data = [
+          {
+            id: 1,
+            firstName: "John",
+            lastName: "Doe",
+            username: "johndoe",
+            email: "<EMAIL>",
+            image: "https://picsum.photos/200/300",
+          },
+          {
+            id: 2,
+            username: "xUser_2",
+            firstName: "Mohamed",
+            lastName: "Ali",
+            email: "XX2@gmail.com",
+            image: "http://none.com",
+          },
+        ];
 
-        return data.users.map((u: any) => {
+        return data.map((u: any) => {
           return {
             id: u.id,
             firstName: u.firstName,

@@ -1,5 +1,5 @@
 import { getServerSession } from "next-auth";
-import prisma from "@/lib/prismaClient";
+import prisma from "../../../prisma/prismaClient";
 
 export default async function Home() {
   const data = await getServerSession();

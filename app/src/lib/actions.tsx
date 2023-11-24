@@ -1,5 +1,5 @@
 "use server";
-import prisma from "@/lib/prismaClient";
+import prisma from "../../prisma/prismaClient";
 import bcrypt from "bcrypt";
 import { SignUpType, signUpSchema } from "./Schemas";
 import { randomUUID } from "crypto";
