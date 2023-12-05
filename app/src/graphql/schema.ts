@@ -1,18 +1,24 @@
 import { gql } from "graphql-tag";
 
-const typeDefs = gql`
-  type Query {
-    users: [User]
-    searchUser(value: String): [User]
+const schema = gql`
+  input SignInUser {
+    email: String!
+    password: String!
   }
-
   type User {
-    id: ID
-    firstName: String
-    lastName: String
-    email: String
-    username: String
-    image: String
+    id: String!
+    username: String!
+    email: String!
+    password: String!
+    isActive: Boolean!
+    createdAt: String!
+    updatedAt: String!
+  }
+  type Query {
+    getUser(id: String!): String
+  }
+  type Mutation {
+    signInUser(email: String!, password: String!): User
   }
 `;
-export default typeDefs;
+export default schema;

@@ -28,18 +28,20 @@ export default function SingInForm({ fields }: Props) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      email: "mo7malo110@gmail.com",
+      email: "mo7malo111@gmail.com",
       password: "********",
     },
   });
 
   // 2. Define a submit handler.
   async function onSubmit(values: z.infer<typeof formSchema>) {
+    console.log(values);
     const checkedValues = formSchema.parse(values);
     const res = await signIn("credentials", {
       ...checkedValues,
       redirect: false,
     });
+    console.log(res);
     if (!res?.ok) {
       toast.error("Error happened:", { description: res?.error });
     } else {

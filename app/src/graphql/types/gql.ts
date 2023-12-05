@@ -13,7 +13,7 @@ import { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/
  * Therefore it is highly recommended to use the babel or swc plugin for production.
  */
 const documents = {
-    "  \nquery GetUser {\n    users {\n      id\n      firstName\n    }\n  }": types.GetUserDocument,
+    "\n  query Auth($userId: String!){\n    getUser(id: $userId) \n  }\n  mutation CheckIsSignedUser($email: String!,$password: String!) {\n    signInUser(email: $email, password: $password) {\n      id\n      email\n      password\n      createdAt\n    }\n  }\n": types.AuthDocument,
 };
 
 /**
@@ -33,7 +33,7 @@ export function gql(source: string): unknown;
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function gql(source: "  \nquery GetUser {\n    users {\n      id\n      firstName\n    }\n  }"): (typeof documents)["  \nquery GetUser {\n    users {\n      id\n      firstName\n    }\n  }"];
+export function gql(source: "\n  query Auth($userId: String!){\n    getUser(id: $userId) \n  }\n  mutation CheckIsSignedUser($email: String!,$password: String!) {\n    signInUser(email: $email, password: $password) {\n      id\n      email\n      password\n      createdAt\n    }\n  }\n"): (typeof documents)["\n  query Auth($userId: String!){\n    getUser(id: $userId) \n  }\n  mutation CheckIsSignedUser($email: String!,$password: String!) {\n    signInUser(email: $email, password: $password) {\n      id\n      email\n      password\n      createdAt\n    }\n  }\n"];
 
 export function gql(source: string) {
   return (documents as any)[source] ?? {};

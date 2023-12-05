@@ -81,5 +81,14 @@
   .flex-between {
     @apply flex items-center justify-between;
   }
+  .foot-head {
+    @apply text-[#3B5266] font-bold text-lg py-4;
+  }
+  .foot-list {
+    @apply flex flex-col gap-3;
+  }
+  .foot-item {
+    @apply text-[#353945] dark:text-[#6f768d];
+  }
   /* ... */
 }

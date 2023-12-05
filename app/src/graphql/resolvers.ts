@@ -1,62 +1,43 @@
 import type {} from "./types";
 import { Resolvers } from "./types/graphql";
+import { prisma } from "#/prisma/prismaClient";
+import { SendTokenMail } from "@/lib/actions";
+import bcrypt from "bcrypt";
 const resolvers: Resolvers = {
   Query: {
-    users: async () => {
-      try {
-        const data = [
-          {
-            id: 1,
-            firstName: "John",
-            lastName: "Doe",
-            username: "johndoe",
-            email: "<EMAIL>",
-            image: "https://picsum.photos/200/300",
-          },
-          {
-            id: 2,
-            username: "xUser_2",
-            firstName: "Mohamed",
-            lastName: "Ali",
-            email: "XX2@gmail.com",
-            image: "http://none.com",
-          },
-        ];
-
-        return data.map((u: any) => {
-          return {
-            id: u.id,
-            firstName: u.firstName,
-            lastName: u.lastName,
-            email: u.email,
-            username: u.username,
-            image: u.image,
-          };
-        });
-      } catch (error) {
-        throw new Error("Something went wrong");
-      }
+    getUser: async () => {
+      return "Done";
     },
-    searchUser: async (_: any, { value }: any) => {
-      try {
-        const response = await fetch(
-          `${process.env.URL_API}/search?q=${value}`
-        );
-        const data = await response.json();
-
-        return data.users.map((u: any) => {
-          return {
-            id: u.id,
-            firstName: u.firstName,
-            lastName: u.lastName,
-            email: u.email,
-            username: u.username,
-            image: u.image,
-          };
-        });
-      } catch (error) {
-        throw new Error("Something went wrong");
+  },
+  Mutation: {
+    signInUser: async (_, { email, password }) => {
+      const user = await prisma.user.findUnique({
+        where: { email },
+      });
+      console.log(user);
+      if (!user) {
+        throw new Error("User is not found");
       }
+      const retUser = {
+        ...user,
+        createdAt: user?.createdAt.toLocaleDateString() as string,
+        updatedAt: user?.updatedAt.toLocaleDateString() as string,
+      };
+      if (!user.isActive) {
+        await SendTokenMail({
+          id: user.id,
+          username: user.username,
+          email: user.email,
+        });
+        throw new Error("Please activate the account, We sent an email");
+      }
+
+      const isPassValid = await bcrypt.compare(password, user.password);
+
+      if (!isPassValid) {
+        throw new Error("Invalid password");
+      }
+      return retUser;
     },
   },
 };

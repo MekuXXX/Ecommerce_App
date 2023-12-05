@@ -7,7 +7,23 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcrypt";
 import { SendTokenMail } from "@/lib/actions";
+import { graphqlClient } from "@/graphql/graphqlClient";
+import { gql } from "@/graphql/types";
+import { prisma } from "#/prisma/prismaClient";
 
+const AuthSchema = gql(`
+  query Auth($userId: String!){
+    getUser(id: $userId) 
+  }
+  mutation CheckIsSignedUser($email: String!,$password: String!) {
+    signInUser(email: $email, password: $password) {
+      id
+      email
+      password
+      createdAt
+    }
+  }
+`);
 const handler = NextAuth({
   secret: process.env.NEXTAUTH_SECRET,
   session: {
@@ -37,7 +53,6 @@ const handler = NextAuth({
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials, req) {
-        const prisma = new PrismaClient();
         const user = await prisma.user.findUnique({
           where: { email: credentials?.email },
         });
@@ -66,7 +81,6 @@ const handler = NextAuth({
         return {
           email: user.email,
           name: user.username,
-
           id: user.id,
         };
       },
@@ -78,3 +92,35 @@ const handler = NextAuth({
 });
 
 export { handler as GET, handler as POST };
+// const prisma = new PrismaClient();
+// const user = await prisma.user.findUnique({
+//   where: { email: credentials?.email },
+// });
+
+// if (!user) {
+//   throw new Error("User is not found");
+// }
+// if (!user.isActive) {
+//   await SendTokenMail({
+//     id: user.id,
+//     username: user.username,
+//     email: user.email,
+//   });
+//   throw new Error("Please activate the account, We sent an email");
+// }
+
+// const isPassValid = await bcrypt.compare(
+//   credentials?.password!,
+//   user.password
+// );
+
+// if (!isPassValid) {
+//   throw new Error("Invalid password");
+// }
+
+// return {
+//   email: user.email,
+//   name: user.username,
+
+//   id: user.id,
+// };
